@@ -1,6 +1,6 @@
-my_paper_project/
+my_paper_project/        
 ├── README.md                 
-├── requirements.txt         
+├── requirements.txt          
 ├── data/         
 │   ├── raw/                  
 │   ├── processed/           
