@@ -14,12 +14,12 @@ my_paper_project/
 │   ├── train.py               
 │   ├── evaluate.py          
 │   └── utils.py              
-├── results/       
+├── results/        
 │   ├── seed_42/              
-│   ├── seed_123/
-│   └── results.csv            
-├── paper/          
-│   ├── main.tex                
-│   ├── references.bib           
+│   ├── seed_123/          
+│   └── results.csv             
+├── paper/           
+│   ├── main.tex                 
+│   ├── references.bib            
 │   └── figures/                
 └── .gitignore                    
