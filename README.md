@@ -17,7 +17,7 @@ This repository provides full source code, configuration files, and evaluation s
 
 ---
 
-## 🛠️ Environment Setup
+## Environment Setup
 
 ```bash
 git clone https://github.com/phanhuuy1107/my_paper_project.git
@@ -43,7 +43,7 @@ data/
 
 ---
 
-## 🚀 Reproduction Commands
+##  Reproduction Commands
 
 ### 1. Run Baseline (TF-IDF + Logistic Regression)
 ```bash
@@ -69,7 +69,7 @@ python train_phobert.py --seed 42 --no_pyvi --epochs 3
 
 ---
 
-## 📜 Citation
+## Citation
 If you find this work useful, please cite:
 ```bibtex
 @inproceedings{vsfc2018,
