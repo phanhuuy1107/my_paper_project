@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# PyTorch / HuggingFace Checkpoints & Outputs
+*.pt
+*.bin
+*.safetensors
+checkpoint-*/
+phobert_vsfc_results/
+results/
+logs/
+
+# Data cache
+data/
+*.cache
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
