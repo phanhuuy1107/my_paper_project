@@ -6,14 +6,62 @@ Official research repository for the paper:
 ---
 
 ## 📌 Overview
-This repository provides full source code, configuration files, and evaluation scripts to replicate the experimental benchmark on the **UIT-VSFC** corpus ($16,175$ sentences).
+This repository provides full source code, configuration files, and evaluation scripts to replicate the experimental benchmark on the **UIT-VSFC** corpus (16,175 sentences).
 
 ### Key Results
-* **Baseline (TF-IDF + Logistic Regression):** $88.82\%$ Accuracy, $65.06\%$ Macro-F1 (deterministic).
-* **PhoBERT-base (Fine-tuned across 3 seeds: 42, 100, 2024):** $\mathbf{94.08 \pm 0.18\%}$ Accuracy, $\mathbf{82.95 \pm 0.69\%}$ Macro-F1 ($+17.89\text{ pp}$ leap).
-* **Neutral Minority Class F1:** Improved from $13.04\%$ to $\mathbf{59.64\%}$ ($+46.60\text{ pp}$).
-* **Ablation Study (w/o `pyvi` segmentation):** $-5.46\text{ pp}$ drop in Macro-F1.
-* **Error Reduction:** Baseline $354$ errors $\to$ PhoBERT $183$ errors ($\mathbf{-48.3\%}$ error reduction).
+| Model | Accuracy | Macro-F1 | Δ Macro-F1 |
+|-------|----------|----------|------------|
+| Baseline (TF-IDF + LR, deterministic) | 88.82% | 65.06% | Reference |
+| PhoBERT-base (avg. seeds 42, 100, 2024) | **94.08 ± 0.18%** | **82.95 ± 0.69%** | **+17.89 pp** |
+
+- **Neutral class F1:** 13.04% → **59.64%** (+46.60 pp)
+- **Ablation** (w/o `pyvi` segmentation): −5.46 pp Macro-F1
+- **Error reduction:** 354 → 183 errors (−48.3%)
+
+---
+
+## 🗂️ Repository Structure
+
+```
+my_paper_project/
+├── src/                         # Core source code
+│   ├── train.py                 # Main entry-point dispatcher (baseline or phobert)
+│   ├── train_baseline.py        # TF-IDF + Logistic Regression training
+│   ├── train_phobert.py         # PhoBERT-base fine-tuning
+│   ├── data_pipeline.py         # Data loading, preprocessing & EDA
+│   ├── evaluate.py              # Evaluation on saved checkpoints / prediction CSVs
+│   ├── run_experiments_mentor.py# Multi-seed statistics & 5-category error analysis
+│   └── utils.py                 # Shared utilities (seed, metrics, label mapping)
+│
+├── paper/                       # LaTeX paper source
+│   ├── main.tex                 # IEEE conference paper (full English)
+│   ├── references.bib           # 12 BibTeX entries with DOIs
+│   └── figures/
+│       └── confusion_matrix.png # Publication-ready confusion matrix (300 DPI)
+│
+├── data/                        # Dataset directory (not tracked by git)
+│   ├── raw/                     # Raw UIT-VSFC JSON files (download separately)
+│   └── processed/               # Preprocessed / tokenized cache files
+│
+├── notebooks/                   # Exploratory Jupyter notebooks
+│   ├── 01_explore.ipynb         # Dataset EDA
+│   ├── 02_baseline.ipynb        # TF-IDF baseline walkthrough
+│   ├── 03_phobert.ipynb         # PhoBERT fine-tuning walkthrough
+│   └── 04_analysis.ipynb        # Error analysis & confusion matrix
+│
+├── results/                     # Evaluation outputs per seed
+│   ├── seed_42/                 # Checkpoint metrics & prediction logs (Seed 42)
+│   ├── seed_2024/               # Checkpoint metrics & prediction logs (Seed 2024)
+│   └── results.csv              # Aggregated multi-seed performance table
+│
+├── docs/                        # Research documentation
+│   ├── reproducibility_checklist_E3.md   # Appendix E.3 reproducibility checklist
+│   └── Change_Log_Nop_Lai_Chuong_8.md    # Change log: old vs. new numbers
+│
+├── .gitignore
+├── requirements.txt
+└── README.md
+```
 
 ---
 
@@ -25,21 +73,25 @@ cd my_paper_project
 pip install -r requirements.txt
 ```
 
+**Python:** 3.9+  |  **GPU recommended:** NVIDIA Tesla T4 or equivalent
+
 ---
 
 ## 📂 Dataset (UIT-VSFC)
-We use the official 7:1:2 partition from the KSE 2018 paper:
-* **Train:** $11,426$ sentences ($70.6\%$)
-* **Validation:** $1,583$ sentences ($9.8\%$)
-* **Test:** $3,166$ sentences ($19.6\%$)
+The dataset is automatically downloaded from 🤗 HuggingFace Hub when you run any training script:
+```python
+from datasets import load_dataset
+dataset = load_dataset("uitnlp/vietnamese_students_feedback")
+```
 
-Place the data files in `./data/`:
-```
-data/
-  train.json
-  dev.json
-  test.json
-```
+Official 7:1:2 partition:
+| Split | Sentences | Ratio |
+|-------|-----------|-------|
+| Train | 11,426 | 70.6% |
+| Validation | 1,583 | 9.8% |
+| Test | 3,166 | 19.6% |
+
+Class distribution: 43.7% Negative · 4.8% Neutral · 51.5% Positive
 
 ---
 
@@ -47,24 +99,36 @@ data/
 
 ### 1. Run Baseline (TF-IDF + Logistic Regression)
 ```bash
-python train_baseline.py --max_features 10000 --ngram_range 1 2
+python src/train.py --model baseline --seed 42
+# Or directly:
+python src/train_baseline.py
 ```
 
 ### 2. Fine-Tune PhoBERT-base (Multi-Seed Benchmark)
 ```bash
 # Seed 42
-python train_phobert.py --seed 42 --batch_size 16 --lr 2e-5 --epochs 3
+python src/train.py --model phobert --seed 42 --epochs 3 --lr 2e-5
 
 # Seed 100
-python train_phobert.py --seed 100 --batch_size 16 --lr 2e-5 --epochs 3
+python src/train.py --model phobert --seed 100 --epochs 3 --lr 2e-5
 
 # Seed 2024
-python train_phobert.py --seed 2024 --batch_size 16 --lr 2e-5 --epochs 3
+python src/train.py --model phobert --seed 2024 --epochs 3 --lr 2e-5
 ```
 
-### 3. Run Ablation Study (Without Word Segmentation)
+### 3. Ablation Study (Without Word Segmentation)
 ```bash
-python train_phobert.py --seed 42 --no_pyvi --epochs 3
+python src/train_phobert.py --seed 42 --no_pyvi --epochs 3
+```
+
+### 4. Evaluate a Saved Checkpoint
+```bash
+python src/evaluate.py --model phobert --checkpoint ./phobert_vsfc_results/checkpoint-best --seed 42
+```
+
+### 5. Run Multi-Seed Statistics & Error Analysis
+```bash
+python src/run_experiments_mentor.py
 ```
 
 ---
